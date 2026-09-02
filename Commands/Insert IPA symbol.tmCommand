@@ -148,7 +148,7 @@ cat &lt;&lt;-HTML
 				TextMate.isBusy = true;
 				outStr = "";
 				document.getElementById("result").innerHTML = "";
-				var cmd = "ruby '$TM_BUNDLE_SUPPORT/bin/search_ipa_descriptions.rb' '"+w+"' '"+term.replace(/'/g, "'\''")+"'";
+				var cmd = "ruby '$TM_BUNDLE_SUPPORT/bin/search_ipa_descriptions.rb' '"+w+"' '"+term.replace(/'/g, "'\\''")+"'";
 				myCommand = TextMate.system(cmd, function (task) { });
 				myCommand.onreadoutput = output;
 				TextMate.isBusy = false;
@@ -199,7 +199,7 @@ cat &lt;&lt;-HTML
 &lt;button accesskey="d" id='3' onclick='toggle("Diacritics",3)' class='buttonInAct'&gt;Diacritics&lt;/button&gt;
 &lt;button accesskey="o" id='4' onclick='toggle("Others",4)' class='buttonInAct'&gt;Others&lt;/button&gt;
 &amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;
-&lt;input accesskey="f" tabindex='0' id='search' type='search' incremental autosave='TMIPASearch' results='20' placeholder='descriptions' onsearch='startSearch(this.value,0);' onfocus='toggle("result",0)'&gt;&amp;nbsp;&lt;input accesskey="t" type='checkbox' id='where' name='where' value='key' onchange='startSearch(document.getElementById("search").value,1); document.getElementById("search").focus()' onfocus='toggle("result",0)'&gt;Full&amp;nbsp;Text
+&lt;input accesskey="f" tabindex='0' id='search' type='search' incremental autosave='TMIPASearch' results='20' placeholder='descriptions' oninput='startSearch(this.value,0);' onfocus='toggle("result",0)'&gt;&amp;nbsp;&lt;input accesskey="t" type='checkbox' id='where' name='where' value='key' onchange='startSearch(document.getElementById("search").value,1); document.getElementById("search").focus()' onfocus='toggle("result",0)'&gt;Full&amp;nbsp;Text
 &amp;nbsp;&amp;nbsp;&amp;nbsp;
 &lt;/div&gt;
 &lt;p&gt; &lt;/p&gt;&lt;p&gt; &lt;/p&gt;
