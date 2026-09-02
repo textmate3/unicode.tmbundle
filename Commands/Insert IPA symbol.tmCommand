@@ -7,7 +7,6 @@
 	<key>command</key>
 	<string>#!/bin/bash
 source "$TM_SUPPORT_PATH/lib/bash_init.sh" 2&gt;/dev/null # might not be necessary
-[[ -e /tmp/TM_db.busy ]] &amp;&amp; rm - f /tmp/TM_db.busy
 cat &lt;&lt;-HTML
 &lt;html&gt;
 	&lt;head&gt;
@@ -149,7 +148,7 @@ cat &lt;&lt;-HTML
 				TextMate.isBusy = true;
 				outStr = "";
 				document.getElementById("result").innerHTML = "";
-				var cmd = "[[ ! -e /tmp/TM_db.busy ]] &amp;&amp; /usr/bin/python '$TM_BUNDLE_SUPPORT/bin/SearchIPADescription.py' '"+w+"' '"+term+"'";
+				var cmd = "ruby '$TM_BUNDLE_SUPPORT/bin/search_ipa_descriptions.rb' '"+w+"' '"+term.replace(/'/g, "'\''")+"'";
 				myCommand = TextMate.system(cmd, function (task) { });
 				myCommand.onreadoutput = output;
 				TextMate.isBusy = false;
