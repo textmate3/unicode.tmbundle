@@ -5,7 +5,7 @@
 	<key>beforeRunningCommand</key>
 	<string>nop</string>
 	<key>command</key>
-	<string>/usr/bin/python -O "$TM_BUNDLE_SUPPORT/bin/ShowUnicodeProperty.py"</string>
+	<string>ruby "$TM_BUNDLE_SUPPORT/bin/show_unicode_property.rb"</string>
 	<key>fallbackInput</key>
 	<string>none</string>
 	<key>input</key>
