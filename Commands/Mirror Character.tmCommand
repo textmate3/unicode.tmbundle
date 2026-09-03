@@ -5,61 +5,33 @@
 	<key>beforeRunningCommand</key>
 	<string>nop</string>
 	<key>command</key>
-	<string>#!/usr/bin/python
-# coding=utf-8
+	<string>#!/usr/bin/env ruby
+# Replaces the character before the caret with its mirror, a bracket for its
+# counterpart, from lib/mirror.txt. Exit codes: 200 leaves the line alone, 201
+# replaces it, 206 shows the message as a tool tip.
+if ENV.key?("TM_SELECTED_TEXT")
+  puts "Please remove the selection first."
+  exit 206
+end
 
-# written by Hans-Jörg Bibiko; bibiko at eva.mpg.de
+line  = ENV.fetch("TM_CURRENT_LINE").dup.force_encoding("UTF-8")
+index = ENV.fetch("TM_LINE_INDEX").to_i
+left  = line.byteslice(0, index).force_encoding("UTF-8")
+exit 200 if left.empty?
 
-import sys
-import unicodedata
-import re
-import warnings
+character = left[-1]
+head      = left[0...-1]
+tail      = line.byteslice(index..-1).force_encoding("UTF-8")
 
-from os import popen2, path, environ as env
+mirrors = File.join(ENV.fetch("TM_BUNDLE_SUPPORT"), "lib", "mirror.txt")
+entry = File.foreach(mirrors, encoding: "UTF-8").find { |row| row.start_with?(character + "\t") }
+exit 200 unless entry
 
-tm_support_path = path.join(env["TM_SUPPORT_PATH"], "lib")
-if not tm_support_path in env:
-     sys.path.insert(0, tm_support_path)
+mirror = entry.chomp.split("\t")[1].to_s
+exit 200 if mirror.empty?
 
-import dialog
-import tm_helpers
-
-if "TM_SELECTED_TEXT" in env:
-     print "Please remove the selection firstly."
-     sys.exit(206)
-
-line, x = env["TM_CURRENT_LINE"], int(env["TM_LINE_INDEX"])
-
-inputleft = unicode(line[:x], "UTF-8")
-
-if len(inputleft) == 0:
-     sys.exit(200)
-
-tail = unicode(line[x:], "UTF-8")
-char = inputleft[-1]
-head = inputleft[:-1]
-
-with warnings.catch_warnings():
-	warnings.simplefilter("ignore")
-
-	inp, out = popen2("grep '^"+char.encode("UTF-8")+"' '"+path.join(env["TM_BUNDLE_SUPPORT"], "lib/mirror.txt'"))
-	inp.close()
-	data = unicode(out.read(), "UTF-8").rstrip()
-	out.close()
-
-	if len(data) &lt; 3:
-	    sys.exit(200)
-
-	cc, mirror = data.split('\t')
-
-	if len(mirror):
-	    sys.__stdout__.write(head.encode("UTF-8"))
-	    sys.__stdout__.write(mirror.encode("UTF-8"))
-	    sys.__stdout__.write(tail.encode("UTF-8"))
-	    sys.exit(201)
-
-	sys.exit(200)
-</string>
+print head, mirror, tail
+exit 201</string>
 	<key>fallbackInput</key>
 	<string>line</string>
 	<key>input</key>

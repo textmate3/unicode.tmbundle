@@ -5,7 +5,7 @@
 	<key>beforeRunningCommand</key>
 	<string>nop</string>
 	<key>command</key>
-	<string>/usr/bin/python "$TM_BUNDLE_SUPPORT/bin/FullHalfWidthConverter.py" "toHalf"</string>
+	<string>ruby "$TM_BUNDLE_SUPPORT/bin/full_half_width_converter.rb" "toHalf"</string>
 	<key>input</key>
 	<string>selection</string>
 	<key>keyEquivalent</key>

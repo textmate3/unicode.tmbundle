@@ -5,40 +5,17 @@
 	<key>beforeRunningCommand</key>
 	<string>nop</string>
 	<key>command</key>
-	<string>#!/usr/bin/python
-# encoding: utf-8
+	<string>#!/usr/bin/env ruby
+# Opens the Unihan database page for the character before the caret.
+exit 200 if ENV.key?("TM_SELECTED_TEXT")
 
-import sys
-import os
-import warnings
+line  = ENV.fetch("TM_CURRENT_LINE").dup.force_encoding("UTF-8")
+index = ENV.fetch("TM_LINE_INDEX").to_i
+left  = line.byteslice(0, index).force_encoding("UTF-8")
+exit 200 if left.empty?
 
-def lastCharInUCSdec(s):
-    if s:
-        if u"\udc00" &lt;= s[-1] &lt;= u"\udfff" and len(s) &gt;= 2 and u"\ud800" &lt;= s[-2] &lt;= u"\udbff":
-            global charIsPaneB
-            charIsPaneB = 1
-            return ((ord(s[-2])&amp;0x3ff)&lt;&lt;10 | (ord(s[-1])&amp;0x3ff)) + 0x10000
-        return ord(s[-1])
-    return -1
-
-
-if "TM_SELECTED_TEXT" in os.environ:
-    sys.exit(200)
-
-line, x = os.environ["TM_CURRENT_LINE"], int(os.environ["TM_LINE_INDEX"])
-
-lastCharDecCode = lastCharInUCSdec(unicode(line[:x], "UTF-8"))
-charcode = "%04X" % lastCharDecCode
-
-if len(charcode) == 0:
-    sys.exit(200)
-
-with warnings.catch_warnings():
-	warnings.simplefilter("ignore")
-	inp, out = os.popen2("open 'http://www.unicode.org/cgi-bin/GetUnihanData.pl?codepoint=" + charcode + "&amp;useutf8=false'")
-	inp.close()
-	out.close()
-</string>
+code = "%04X" % left[-1].ord
+system("open", "http://www.unicode.org/cgi-bin/GetUnihanData.pl?codepoint=#{code}&amp;useutf8=false")</string>
 	<key>fallbackInput</key>
 	<string>none</string>
 	<key>input</key>
