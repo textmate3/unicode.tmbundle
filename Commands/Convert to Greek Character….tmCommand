@@ -5,71 +5,57 @@
 	<key>beforeRunningCommand</key>
 	<string>nop</string>
 	<key>command</key>
-	<string>#!/usr/bin/python
-# coding=utf-8
+	<string>#!/usr/bin/env ruby
+# Replaces the Latin letter before the caret with a Greek one. lib/greekList.txt
+# has one row per Latin letter: the letter, then the Greek candidates. One
+# candidate is inserted outright, several go through a menu with their Unicode
+# names. Exit codes: 200 leaves the line alone, 201 replaces it, 206 shows a
+# tool tip.
+require "zlib"
+require "#{ENV['TM_SUPPORT_PATH']}/lib/ui"
 
-# written by Hans-Jörg Bibiko; bibiko at eva.mpg.de
+if ENV.key?("TM_SELECTED_TEXT")
+  puts "Please remove the selection first."
+  exit 206
+end
 
-import sys
-import unicodedata
-import re
-import warnings
+line  = ENV.fetch("TM_CURRENT_LINE").dup.force_encoding("UTF-8")
+index = ENV.fetch("TM_LINE_INDEX").to_i
+left  = line.byteslice(0, index).force_encoding("UTF-8")
+exit 200 if left.empty?
 
-from os import popen2, path, environ as env
+character = left[-1]
+head      = left[0...-1]
+tail      = line.byteslice(index..-1).force_encoding("UTF-8")
 
-tm_support_path = path.join(env["TM_SUPPORT_PATH"], "lib")
-if not tm_support_path in env:
-     sys.path.insert(0, tm_support_path)
+library = File.join(ENV.fetch("TM_BUNDLE_SUPPORT"), "lib")
+rows = File.foreach(File.join(library, "greekList.txt"), encoding: "UTF-8").select { |row| row.start_with?(character) }
+candidates = rows.map { |row| row.chomp[1..-1].chars }.flatten
 
-import dialog
-import tm_helpers
+if candidates.empty?
+  print "Nothing found for '#{character}'."
+  exit 206
+end
 
-if "TM_SELECTED_TEXT" in env:
-     print "Please remove the selection firstly."
-     sys.exit(206)
+if candidates.size == 1
+  print head, candidates.first, tail
+  exit 201
+end
 
-line, x = env["TM_CURRENT_LINE"], int(env["TM_LINE_INDEX"])
+wanted = candidates.map { |c| "%04X" % c.ord }
+names = {}
+Zlib::GzipReader.open(File.join(library, "UnicodeData.txt.gz")) do |gz|
+  gz.each_line do |row|
+    code, name = row.split(";", 3)
+    names[code] = name if wanted.include?(code)
+  end
+end
 
-inputleft = unicode(line[:x], "UTF-8")
-
-if len(inputleft) == 0:
-     sys.exit(200)
-
-tail = unicode(line[x:], "UTF-8")
-char = inputleft[-1]
-head = inputleft[:-1]
-
-with warnings.catch_warnings():
-	warnings.simplefilter("ignore")
-	# get the suggestion for 'char' by using grep against charList.txt
-	# and replace all newline by -
-	inp, out = popen2("grep '^"+char.encode("UTF-8")+"' '"+path.join(env["TM_BUNDLE_SUPPORT"], "lib/greekList.txt' | perl -pe 's/\n/-/g'"))
-	inp.close()
-	suggestions = list(unicode(out.read(), "UTF-8"))[1:-1]
-	out.close()
-
-	if len(suggestions) == 0:
-	    mes = "Nothing found for '" + char + "'."
-	    sys.__stdout__.write(mes.encode("UTF-8"))
-	    sys.exit(206)
-
-	if len(suggestions) == 1:
-	    sys.__stdout__.write(head.encode("UTF-8"))
-	    sys.__stdout__.write(re.sub(r'\\','',suggestions[0]).encode("UTF-8"))
-	    sys.__stdout__.write(tail.encode("UTF-8"))
-	    sys.exit(201)
-	try:
-	    result=dialog.menu([tm_helpers.sh_escape(a) + "\t" + unicodedata.name(a, "U+%04X" % ord(a)) for a in suggestions])
-	    if not result:
-	        sys.exit(200)
-
-	    sys.__stdout__.write(head.encode("UTF-8"))
-	    sys.__stdout__.write(re.sub(r'\\','',result.split('\t')[0]).encode("UTF-8"))
-	    sys.__stdout__.write(tail.encode("UTF-8"))
-	    sys.exit(201)
-	except KeyError:
-	    sys.exit(206)
-</string>
+items = candidates.map { |c| "#{c}\t#{names.fetch("%04X" % c.ord, "U+%04X" % c.ord)}" }
+chosen = TextMate::UI.menu(items)
+exit 200 if chosen.nil?
+print head, candidates[chosen], tail
+exit 201</string>
 	<key>fallbackInput</key>
 	<string>line</string>
 	<key>input</key>

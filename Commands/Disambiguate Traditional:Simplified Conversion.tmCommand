@@ -5,41 +5,27 @@
 	<key>beforeRunningCommand</key>
 	<string>nop</string>
 	<key>command</key>
-	<string>#!/usr/bin/python
-# coding=utf-8
+	<string>#!/usr/bin/env ruby
+# The Han variant commands leave a choice of counterparts as `{X=a|b}`. With that
+# selected, offer the counterparts in a menu and replace the selection with the
+# one picked.
+require "#{ENV['TM_SUPPORT_PATH']}/lib/ui"
 
-# written by Hans-Jörg Bibiko; bibiko at eva.mpg.de
+STDIN.set_encoding("UTF-8")
+text = STDIN.read
 
-import sys
-import codecs
+if text.empty?
+  puts "Please find '{.*?=.*?}' first."
+  exit 206
+end
 
-from os import path, environ as env
+original, options = text[0...-1].split("=", 2)
+exit 200 if options.nil? || options.empty?
 
-tm_support_path = path.join(env["TM_SUPPORT_PATH"], "lib")
-if not tm_support_path in env:
-     sys.path.insert(0, tm_support_path)
-import dialog
-import tm_helpers
-
-sys.stdout = codecs.getwriter('utf-8')(sys.stdout)
-sys.stdin  = codecs.getreader('utf-8')(sys.stdin)
-
-text = sys.stdin.read()
-
-if text:
-    org, opt = text[:-1].split("=")
-    if opt:
-        choices = opt.split("|")
-        result=dialog.menu(choices)
-        if result:
-            sys.stdout.write(result)
-        else:
-            sys.exit(200)
-    else: sys.exit(200)
-else:
-     print u"Please find '\{.*?=.*?\}' firstly."
-     sys.exit(206)
-</string>
+choices = options.split("|")
+index = TextMate::UI.menu(choices)
+exit 200 if index.nil?
+print choices[index]</string>
 	<key>fallbackInput</key>
 	<string>none</string>
 	<key>input</key>
